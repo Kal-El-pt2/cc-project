@@ -3,22 +3,22 @@
 %}
 
 %%
-"+"                 {return PL;}
-"-"                 {return MINUS;}
-"*"                 {return MUL;}
-"/"                 {return DIV;}
-"%"                 {return MOD;}
-">"                 {return GT;}
-">="                {return GTEQ;}
-"<"                 {return LT;}
-"<="                {return LTEQ;}
-"<>"                {return NTEQ;}
-":="                {return ASSIGN;}
-"+="                {return PLASSIGN;}
-"-="                {return MINUSASSIGN;}
-"*="                {return MULASSIGN;}
-"/="                {return DIVASSIGN;}
-"%="                {return MODASSIGN;}
+"+"                                         {return PL;}
+"-"                                         {return MINUS;}
+"*"                                         {return MUL;}
+"/"                                         {return DIV;}
+"%"                                         {return MOD;}
+">"                                         {return GT;}
+">="                                        {return GTEQ;}
+"<"                                         {return LT;}
+"<="                                        {return LTEQ;}
+"<>"                                        {return NTEQ;}
+":="                                        {return ASSIGN;}
+"+="                                        {return PLASSIGN;}
+"-="                                        {return MINUSASSIGN;}
+"*="                                        {return MULASSIGN;}
+"/="                                        {return DIVASSIGN;}
+"%="                                        {return MODASSIGN;}
 "("                                         {return OB;}
 ")"                                         {return CB;}
 ","                                         {return COMMA;}

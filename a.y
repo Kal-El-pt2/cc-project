@@ -10,6 +10,7 @@
 %token INT CHAR 
 %token MAIN PROGRAM 
 %token INC DEC
+%token SLC MLCO MLCC
 %token ID 
 %token NL TAB 
 
@@ -76,6 +77,10 @@ LOOP_STMT           :   WHILE OB expr CB NL BLOCK_STMTS                         
                     ;
 ARRAY_STMT          : OB ID SOB ID SCB COMMA TYPE CB SEMICOLON                          {}              
                     ;
+
+SINGLE_LINE_COMMENT : SLC STR                                                           {}
+                    ;
+MULTI_LINE_COMMENT  : MLCO STR MLCC                                                     {}
 TYPE                : INT                                                               {}
                     | CHAR                                                              {}
                     ;

@@ -46,6 +46,8 @@
 "program"                                   {return PROGRAM;}
 "inc"                                       {return INC;}
 "dec"                                       {return DEC;}
+"VarDecl"                                   {return VarDecl;}
+"to"                                        {return TO;}
 \n                                          {return NL;}
 [ \t]+                                      {return TAB;}
 [a-z][a-z0-9_]*                             {

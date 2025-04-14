@@ -20,10 +20,20 @@
 
 %%
 
+file                : BEGIN PROGRAM  VAR_DECLR CODE_SECTION END PROGRAM
 
+BLOCK_STMTS         : BEGIN STMTS END SEMICOLON NL                                      {}
+                    ;
+STMTS               : ASSIGN_STMT                                                       {}
+                    | PRINT_STMT                                                        {}
+                    | SCAN_STMT                                                         {}
+                    | ARRAY_STMT                                                        {}
+                    | LOOP_STMT                                                         {}
+                    | CONDITIONAL_STMT                                                  {}
+                    ;
 VAR_DECLR           : BEGIN VarDecl COLON VAR_DECLARE_STMT END VarDecl NL               {}
                     ;
-VAR_DECLARE_STMT    : OB ID COMMA TYPE CB SEMICOLON NL VAR_DECLARE_STMT                 {}
+VAR_DECLARE_FORMAT  : OB ID COMMA TYPE CB SEMICOLON NL VAR_DECLARE_FORMAT               {}
                     | OB ID COMMA TYPE CB SEMICOLON NL                                  {}
                     ;
 PRINT_STMT          : PRINTF OB DAPOS STRING_STMT DAPOS COMMA PAR_SUB CB SEMICOLON NL   {}
@@ -48,32 +58,25 @@ VAL                 : ID                                                        
 STR                 : str                                                               {}
                     ;
 
-ASSIGN_STMT         : ID ASSIGN_OPERATOR expr SEMICOLON NL                              {}
+ASSIGN_STMT         : ID ASSIGN expr SEMICOLON NL                                       {$1 = $3;}
+                    | ID PLASSIGN expr SEMICOLON NL                                     {$1 += $3;}
+                    | ID MINUSASSIGN expr SEMICOLON NL                                  {$1 -= $3;}
+                    | ID MULASSIGN expr SEMICOLON NL                                    {$1 *= $3;}
+                    | ID DIVASSIGN expr SEMICOLON NL                                    {$1 /= $3;}
+                    | ID MODASSIGN expr SEMICOLON NL                                    {$1 /= $3;}
                     ;
-ASSIGN_OPERATOR     : ASSIGN                                                            {}
-                    | PLASSIGN                                                          {}
-                    | MINUSASSIGN                                                       {}
-                    | MULASSIGN                                                         {}
-                    | DIVASSIGN                                                         {}
-                    | MODASSIGN                                                         {}
+expr                : expr PL expr                                                      {$$ = $1 + $3;}
+                    | expr MINUS expr                                                   {$$ = $1 - $3;}
+                    | expr MUL expr                                                     {$$ = $1 * $3;}
+                    | expr DIV expr                                                     {$$ = $1 / $3;}
+                    | expr MOD expr                                                     {$$ = $1%$3;}                                                                                 
                     ;
-expr                : expr PL expr                                                      {}
-                    | expr MINUS expr                                                   {}
-                    | expr MUL expr                                                     {}
-                    | expr DIV expr                                                     {}
-                    | expr MOD expr                                                     {}                                                                                 
+LOOP_STMT           : WHILE OB expr CB NL BLOCK_STMTS                                   {}
+                    | FOR ASSIGN_STMT TO expr INC VAL DO BLOCK_STMTS                    {}
+                    | FOR ASSIGN_STMT TO expr DEC VAL DO BLOCK_STMTS                    {}
                     ;
-BLOCK_STMTS         : BEGIN STMTS END SEMICOLON NL                                      {}
-                    ;
-STMTS               : ASSIGN_STMT                                                       {}
-                    | PRINT_STMT                                                        {}
-                    | SCAN_STMT                                                         {}
-                    | ARRAY_STMT                                                        {}
-                    | LOOP_STMT                                                         {}
-                    ;
-LOOP_STMT           :   WHILE OB expr CB NL BLOCK_STMTS                                 {}
-                    |   FOR ASSIGN_STMT TO expr INC VAL DO BLOCK_STMTS                  {}
-                    |   FOR ASSIGN_STMT TO expr DEC VAL DO BLOCK_STMTS                  {}
+CONDITIONAL_STMT    : IF expr BEGIN STMTS END SEMICOLON                                 {}
+                    | IF expr BEGIN STMTS END SEMICOLON ELSE BEGIN STMTS END SEMICOLON  {}
                     ;
 ARRAY_STMT          : OB ID SOB ID SCB COMMA TYPE CB SEMICOLON                          {}              
                     ;

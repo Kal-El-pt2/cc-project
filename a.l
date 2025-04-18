@@ -1,66 +1,165 @@
 %{
-    #include "a.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "parser.tab.h"
+
+int lineno = 1;
 %}
 
+/* Regular definitions */
+DIGIT       [0-9]
+LETTER      [a-z]
+WHITESPACE  [ \t\r]
+NEWLINE     \n
+
 %%
-"+"                                         {return PL;}
-"-"                                         {return MINUS;}
-"*"                                         {return MUL;}
-"/"                                         {return DIV;}
-"%"                                         {return MOD;}
-">"                                         {return GT;}
-">="                                        {return GTEQ;}
-"<"                                         {return LT;}
-"<="                                        {return LTEQ;}
-"<>"                                        {return NTEQ;}
-":="                                        {return ASSIGN;}
-"+="                                        {return PLASSIGN;}
-"-="                                        {return MINUSASSIGN;}
-"*="                                        {return MULASSIGN;}
-"/="                                        {return DIVASSIGN;}
-"%="                                        {return MODASSIGN;}
-"("                                         {return OB;}
-")"                                         {return CB;}
-","                                         {return COMMA;}
-";"                                         {return SEMICOLON;}
-"{"                                         {return COB;}
-"}"                                         {return CCB;}
-"@"                                         {return AT;}
-":"                                         {return COLON;}
-\'                                          {return APOS;}
-\"                                          {return DAPOS;}
-"["                                         {return SOB;}
-"]"                                         {return SCB;}
-"print"                                     {return PRINT;}
-"scan"                                      {return SCAN;}
-"begin"                                      {return BEGIN;}
-"end"                                       {return END;}
-"if"                                        {return IF;}
-"else"                                      {return ELSE;}
-"while"                                     {return WHILE;}
-"for"                                       {return FOR;}
-"do"                                        {return DO;}
-"int"                                       {return INT;}
-"char"                                      {return CHAR;}
-"main"                                      {return MAIN;}
-"program"                                   {return PROGRAM;}
-"inc"                                       {return INC;}
-"dec"                                       {return DEC;}
-"VarDecl"                                   {return VarDecl;}
-"to"                                        {return TO;}
-\n                                          {return NL;}
-[ \t]+                                      {return TAB;}
-[a-z][a-z0-9_]*                             {
-                                                int underscore_count = 0;
-                                                for (int i = 0; yytext[i] != '\0'; ++i) {
-                                                    if (yytext[i] == '_') ++underscore_count;
-                                                }
-                                                if (underscore_count <= 1) {
-                                                    yylval = strdup(yytext); // ensure yylval in %union is char*
-                                                    return ID;
-                                                } else {
-                                                    fprintf(stderr, "Lexical Error: Too many underscores in identifier '%s'\n", yytext);
-                                                    exit(1);
-                                                }
-                                            }
-%%  
+
+"begin"     { return BEGIN_KEY; }
+"end"       { return END; }
+"program"   { return PROGRAM; }
+"VarDecl"   { return VARDECL; }
+"int"       { return INT; }
+"char"      { return CHAR; }
+"if"        { return IF; }
+"else"      { return ELSE; }
+"while"     { return WHILE; }
+"for"       { return FOR; }
+"main"      { return MAIN; }
+"print"     { return PRINT; }
+"scan"      { return SCAN; }
+"do"        { return DO; }
+"to"        { return TO; }
+"inc"       { return INC; }
+"dec"       { return DEC; }
+
+"("         { return LPAREN; }
+")"         { return RPAREN; }
+"["         { return LBRACKET; }
+"]"         { return RBRACKET; }
+";"         { return SEMICOLON; }
+":"         { return COLON; }
+","         { return COMMA; }
+
+":="        { return ASSIGNOP; }
+"+="        { return ASSIGNOP; }
+"-="        { return ASSIGNOP; }
+"*="        { return ASSIGNOP; }
+"/="        { return ASSIGNOP; }
+"%="        { return ASSIGNOP; }
+
+"+"         { return ADDOP; }
+"-"         { return SUBOP; }
+"*"         { return MULOP; }
+"/"         { return DIVOP; }
+"%"         { return MODOP; }
+
+"="         { return RELOP; }
+">"         { return RELOP; }
+"<"         { return RELOP; }
+">="        { return RELOP; }
+"<="        { return RELOP; }
+"!="        { return RELOP; }
+
+{LETTER}({LETTER}|{DIGIT}|_)*  {
+    // Validate identifier (at most one underscore allowed)
+    int underscores = 0;
+    for (int i = 0; yytext[i] != '\0'; i++) {
+        if (yytext[i] == '_') underscores++;
+    }
+    if (underscores <= 1) {
+        yylval.sval = strdup(yytext);
+        return ID;
+    } else {
+        printf("Syntax error\n");
+        exit(1);
+    }
+}
+
+\([0-9]+,[ ]*(2|8|10)\)  {
+    char value[32], base[4];
+    sscanf(yytext, "(%[^,], %[^)])", value, base);
+    
+    // Validate number based on the specified base
+    int valid = 1;
+    if (strcmp(base, "2") == 0) {
+        // Binary validation
+        for (int i = 0; value[i] != '\0'; i++) {
+            if (value[i] != '0' && value[i] != '1') {
+                valid = 0;
+                break;
+            }
+        }
+    } else if (strcmp(base, "8") == 0) {
+        // Octal validation
+        for (int i = 0; value[i] != '\0'; i++) {
+            if (value[i] < '0' || value[i] > '7') {
+                valid = 0;
+                break;
+            }
+        }
+    } else if (strcmp(base, "10") == 0) {
+        // Decimal validation
+        for (int i = 0; value[i] != '\0'; i++) {
+            if (value[i] < '0' || value[i] > '9') {
+                valid = 0;
+                break;
+            }
+        }
+    } else {
+        // Invalid base (not 2, 8, or 10)
+        valid = 0;
+    }
+    
+    if (!valid) {
+        printf("Syntax error\n");
+        exit(1);
+    }
+    
+    yylval.ival = atoi(value);
+    return INTCONST;
+}
+[0-9]+ return INDEX;
+
+\'([^\'\\]|\\.)\'  {
+    // Character constant handling
+    if (yytext[1] == '\\') {
+        switch (yytext[2]) {
+            case 'n': yylval.ival = '\n'; break;
+            case 't': yylval.ival = '\t'; break;
+            case '\\': yylval.ival = '\\'; break;
+            case '\'': yylval.ival = '\''; break;
+            default: yylval.ival = yytext[2];
+        }
+    } else {
+        yylval.ival = yytext[1];
+    }
+    return CHARCONST;
+}
+
+\"([^\"\\]|\\.)*\"  {
+    // String constant handling
+    yylval.sval = strdup(yytext);
+    return STRCONST;
+}
+
+"//".*      { /* Skip single-line comments */ }
+
+"/*"([^*]|\*+[^*/])*\*+"/" { /* Skip multi-line comments */ }
+
+{WHITESPACE}+  { /* Skip whitespace */ }
+
+{NEWLINE}   { lineno++; }
+
+.           { 
+    printf("Syntax error\n");
+    exit(1);
+}
+
+
+
+%%
+
+int yywrap() {
+    return 1;
+}
